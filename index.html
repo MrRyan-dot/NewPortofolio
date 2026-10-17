@@ -17,6 +17,18 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Portfolio</title>
+
+    <!-- Menghubungkan CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Menghubungkan JavaScript -->
+    <script src="script.js" defer></script>
+
 </head>
 
 <body>
@@ -40,7 +52,10 @@
                 <li><a href="#schedule">Schedule</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
-
+            <button id="themeToggle" type="button">
+    🌙 Dark Mode
+</button>
+<p id="liveClock">Memuat waktu...</p>
         </nav>
     </header>
 
@@ -70,7 +85,7 @@
                 <a href="#about" class="btn">
                     Explore My Profile
                 </a>
-
+                    <h2>I'm a <span id="typingText"></span></h2>
             </div>
 
 
@@ -145,11 +160,13 @@
 
                 <li>
                     <strong>BOASH UNIVERSITY</strong>
-                    <span>2025 - Sekarang</span>
+                    <p>Teknologi Rekayasa Multimedia</p>
+                    <span>2025 - Now</span>
                 </li>
 
                 <li>
                     <strong>SMK TARUNA TERPADU 1</strong>
+                    <p>Multimedia</p>
                     <span>2015 - 2018</span>
                 </li>
 
@@ -381,6 +398,33 @@
 
     </section>
 
+    <form id="contactForm">
+    <input
+        type="text"
+        id="contactName"
+        placeholder="Nama kamu"
+        required
+    >
+
+    <input
+        type="email"
+        id="contactEmail"
+        placeholder="Email kamu"
+        required
+    >
+
+    <textarea
+        id="contactMessage"
+        placeholder="Pesan kamu"
+        required
+    ></textarea>
+
+    <button type="submit">
+        Kirim Pesan
+    </button>
+
+    <p id="formStatus" role="status"></p>
+    </form>
 
     <!-- =========================
          FOOTER
