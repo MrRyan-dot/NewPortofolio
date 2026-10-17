@@ -29,7 +29,7 @@ setInterval(updateClock, 1000);
 
 // 3. TYPING TEXT ANIMATION
 const typingText = document.getElementById("typingText");
-const words = ["Student", "Web Developer", "Content Creator"];
+const words = ["Coaching Staff", "Web Developer", "Content Creator"];
 
 let wordIndex = 0;
 let charIndex = 0;
