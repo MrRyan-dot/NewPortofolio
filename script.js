@@ -95,13 +95,12 @@ if (typingText) {
 
 
 // 4. CONTACT FORM — FRONTEND DEMO
+
 const contactForm = document.getElementById("contactForm");
 const formStatus = document.getElementById("formStatus");
 
-contactForm?.addEventListener("submit", (event) => {
+contactForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
-
-  if (!formStatus) return;
 
   if (!contactForm.checkValidity()) {
     contactForm.reportValidity();
@@ -109,15 +108,41 @@ contactForm?.addEventListener("submit", (event) => {
   }
 
   const formData = new FormData(contactForm);
-  const senderName = String(formData.get("name") || "").trim();
 
-  formStatus.classList.remove("error");
-  formStatus.textContent =
-    `Thanks, ${senderName}! Your form passed validation. ` +
-    "It has not been sent because the backend is not connected yet.";
+  const data = {
+    name: formData.get("name").trim(),
+    email: formData.get("email").trim(),
+    message: formData.get("message").trim()
+  };
 
-  // We intentionally do not clear the form.
-  // This lets you review the entered information.
+  formStatus.textContent = "Mengirim pesan...";
+  formStatus.style.color = "inherit";
+
+  try {
+    const response = await fetch("http://localhost:3000/api/contact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Pesan gagal dikirim.");
+    }
+
+    formStatus.textContent = result.message;
+    formStatus.style.color = "green";
+    contactForm.reset();
+  } catch (error) {
+    console.error("Contact form error:", error);
+
+    formStatus.textContent =
+      "Belum berhasil terhubung. Pastikan backend sedang berjalan.";
+    formStatus.style.color = "red";
+  }
 });
 
 
