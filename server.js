@@ -38,7 +38,7 @@ app.post("/api/contact", (req, res) => {
     });
   }
 
-  // Tahap ini hanya menguji koneksi, belum menyimpan pesan
+  // Pesan saat ini ditampilkan di terminal, belum disimpan ke database
   console.log("Pesan Contact diterima:", {
     name: name.trim(),
     email: email.trim(),
