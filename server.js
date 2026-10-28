@@ -1,38 +1,72 @@
 
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
-const { DatabaseSync } = require("node:sqlite");
+const path = require("path");
+const { Pool } = require("pg");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// Koneksi ke database SQLite
-const db = new DatabaseSync("portfolio.db");
+console.log("SERVER PORTOFOLIO VERSI BARU AKTIF");
 
-// Membuat tabel jika belum tersedia
-db.exec(`
-  CREATE TABLE IF NOT EXISTS contacts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    message TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  )
-`);
+// Koneksi ke PostgreSQL Supabase
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL belum diatur di file .env");
+  process.exit(1);
+}
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
 app.use(cors());
 app.use(express.json());
 
-// Mengecek status backend
-app.get("/api/status", (req, res) => {
-  res.json({
-    success: true,
-    message: "Backend dan database berhasil berjalan!"
-  });
+// Menampilkan website dari folder public
+app.use(express.static(path.join(__dirname, "public")));
+app.get("/", (req, res) => {
+  console.log("ROUTE HOME TERPANGGIL");
+  res.status(200).send("ROUTE HOME BERHASIL!");
+});
+// Membuat tabel kontak jika belum ada
+async function initializeDatabase() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS contacts (
+      id BIGSERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  console.log("Tabel contacts siap digunakan.");
+}
+
+// Mengecek status backend dan database
+app.get("/api/status", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+
+    res.json({
+      success: true,
+      message: "Backend terhubung ke PostgreSQL Supabase!"
+    });
+  } catch (error) {
+    console.error("Pemeriksaan database gagal:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Database belum dapat dihubungi."
+    });
+  }
 });
 
-// Menerima dan menyimpan pesan Contact
-app.post("/api/contact", (req, res) => {
+// Menyimpan pesan dari formulir Contact
+app.post("/api/contact", async (req, res) => {
   const { name, email, message } = req.body || {};
 
   if (
@@ -50,21 +84,19 @@ app.post("/api/contact", (req, res) => {
   }
 
   try {
-    const result = db.prepare(`
-      INSERT INTO contacts (name, email, message)
-      VALUES (?, ?, ?)
-    `).run(
-      name.trim(),
-      email.trim(),
-      message.trim()
+    const result = await pool.query(
+      `INSERT INTO contacts (name, email, message)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [name.trim(), email.trim(), message.trim()]
     );
 
-    console.log("Pesan berhasil disimpan ke database.");
+    console.log("Pesan berhasil disimpan ke PostgreSQL.");
 
     res.status(201).json({
       success: true,
       message: "Pesan berhasil disimpan!",
-      id: Number(result.lastInsertRowid)
+      id: result.rows[0].id
     });
   } catch (error) {
     console.error("Gagal menyimpan pesan:", error.message);
@@ -76,8 +108,15 @@ app.post("/api/contact", (req, res) => {
   }
 });
 
-// Menjalankan server
-app.listen(PORT, () => {
-  console.log(`Backend berjalan di http://localhost:${PORT}`);
-  console.log("Database SQLite siap digunakan.");
-});
+// Siapkan database sebelum server mulai berjalan
+initializeDatabase()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Website berjalan di port ${PORT}`);
+      console.log("Backend terhubung ke PostgreSQL.");
+    });
+  })
+  .catch((error) => {
+    console.error("Gagal menyiapkan database:", error.message);
+    process.exit(1);
+  });
