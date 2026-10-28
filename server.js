@@ -9,46 +9,60 @@ const { Pool } = require("pg");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-console.log("SERVER PORTOFOLIO VERSI BARU AKTIF");
-
-// Koneksi ke PostgreSQL Supabase
-if (!process.env.DATABASE_URL) {
-  console.error("DATABASE_URL belum diatur di file .env");
-  process.exit(1);
-}
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+console.log("SERVER PORTOFOLIO AKTIF");
 
 app.use(cors());
 app.use(express.json());
 
-// Menampilkan website dari folder public
+// Website: berjalan secara lokal dari folder public.
+// Di Vercel, file dalam public juga disajikan melalui CDN.
 app.use(express.static(path.join(__dirname, "public")));
-app.get("/", (req, res) => {
-  console.log("ROUTE HOME TERPANGGIL");
-  res.status(200).send("ROUTE HOME BERHASIL!");
-});
-// Membuat tabel kontak jika belum ada
-async function initializeDatabase() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS contacts (
-      id BIGSERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      message TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
 
-  console.log("Tabel contacts siap digunakan.");
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Database dibuat hanya jika DATABASE_URL tersedia.
+const pool = process.env.DATABASE_URL
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+      connectionTimeoutMillis: 10000,
+      max: 5
+    })
+  : null;
+
+// Inisialisasi tabel dilakukan saat endpoint database dipanggil.
+let databaseReady;
+
+async function ensureDatabase() {
+  if (!pool) {
+    throw new Error("DATABASE_URL belum diatur.");
+  }
+
+  if (!databaseReady) {
+    databaseReady = pool.query(`
+      CREATE TABLE IF NOT EXISTS contacts (
+        id BIGSERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        message TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `).catch((error) => {
+      // Izinkan percobaan ulang jika inisialisasi gagal.
+      databaseReady = null;
+      throw error;
+    });
+  }
+
+  await databaseReady;
 }
 
-// Mengecek status backend dan database
+// Mengecek koneksi backend dan database.
 app.get("/api/status", async (req, res) => {
   try {
+    await ensureDatabase();
     await pool.query("SELECT 1");
 
     res.json({
@@ -65,7 +79,7 @@ app.get("/api/status", async (req, res) => {
   }
 });
 
-// Menyimpan pesan dari formulir Contact
+// Menyimpan pesan dari formulir Contact.
 app.post("/api/contact", async (req, res) => {
   const { name, email, message } = req.body || {};
 
@@ -84,14 +98,14 @@ app.post("/api/contact", async (req, res) => {
   }
 
   try {
+    await ensureDatabase();
+
     const result = await pool.query(
       `INSERT INTO contacts (name, email, message)
        VALUES ($1, $2, $3)
        RETURNING id`,
       [name.trim(), email.trim(), message.trim()]
     );
-
-    console.log("Pesan berhasil disimpan ke PostgreSQL.");
 
     res.status(201).json({
       success: true,
@@ -108,15 +122,12 @@ app.post("/api/contact", async (req, res) => {
   }
 });
 
-// Siapkan database sebelum server mulai berjalan
-initializeDatabase()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Website berjalan di port ${PORT}`);
-      console.log("Backend terhubung ke PostgreSQL.");
-    });
-  })
-  .catch((error) => {
-    console.error("Gagal menyiapkan database:", error.message);
-    process.exit(1);
+// Jalankan server hanya saat dijalankan langsung dengan Node.js.
+// Di Vercel, aplikasi diekspor untuk ditangani oleh platform.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Website berjalan di port ${PORT}`);
   });
+}
+
+module.exports = app;
