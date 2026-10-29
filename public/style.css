@@ -688,6 +688,17 @@ body.dark-mode .button-primary {
   font-size: 0.82rem;
 }
 
+
+.education-map-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+.education-map-link:hover {
+  color: #168b70;
+}
+
 /* SKILLS */
 
 .skills-grid {
