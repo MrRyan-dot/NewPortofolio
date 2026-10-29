@@ -1700,3 +1700,14 @@ header.site-header {
     transform: none;
   }
 }
+
+
+/* WORK EXPERIENCE - TRANSPARENT BACKGROUND */
+
+#work-experience {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+body.dark-mode #work-experience {
+  background: rgba(16, 24, 19, 0.88);
+}
