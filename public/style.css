@@ -39,6 +39,7 @@ body.dark-mode {
   --header-bg: rgba(16, 24, 19, 0.9);
 }
 
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -611,6 +612,7 @@ body.dark-mode .button-primary {
   font-size: 0.84rem;
 }
 
+
 /* EDUCATION TIMELINE */
 
 .timeline {
@@ -632,10 +634,29 @@ body.dark-mode .button-primary {
 .timeline-item {
   position: relative;
   display: grid;
-  grid-template-columns: 135px 1fr;
+  grid-template-columns: 135px minmax(0, 1fr);
   gap: 28px;
   padding-bottom: 30px;
   padding-left: 30px;
+  visibility: visible;
+  opacity: 1;
+}
+
+.timeline-card {
+  display: block;
+  visibility: visible;
+  opacity: 1;
+  min-width: 0;
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.dark-mode .timeline-card {
+  background: rgba(26, 38, 30, 0.85);
 }
 
 .timeline-dot {
@@ -658,7 +679,19 @@ body.dark-mode .button-primary {
 }
 
 .timeline-card {
-  padding: 26px;
+  position: relative;
+  z-index: 2;
+  display: block;
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.dark-mode .timeline-card {
+  background: rgba(26, 38, 30, 0.85);
 }
 
 .timeline-tag {
@@ -688,7 +721,6 @@ body.dark-mode .button-primary {
   font-size: 0.82rem;
 }
 
-
 .education-map-link {
   color: inherit;
   text-decoration: none;
@@ -696,8 +728,9 @@ body.dark-mode .button-primary {
 }
 
 .education-map-link:hover {
-  color: #168b70;
+  color: var(--green);
 }
+
 
 /* SKILLS */
 
@@ -1427,13 +1460,50 @@ button:focus-visible {
 }
 
 /* Background animasi Three.js */
-/* Three.js sebagai background seluruh halaman */
 #three-particles-bg {
   position: fixed;
   inset: 0;
   width: 100%;
   height: 100%;
   display: block;
-  z-index: -1;
+  z-index: 1;
   pointer-events: none;
 }
+
+/* Konten utama tetap berada di atas partikel */
+.site-header,
+main,
+footer {
+  position: relative;
+  z-index: 2;
+}
+
+/* Sedikit transparan agar partikel terlihat di belakang section */
+
+#home {
+  background: rgba(255, 255, 255, 0.90);
+}
+
+#education {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+#schedule {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+#contact {
+  background: rgba(255, 255, 255, 0.90);
+}
+
+
+/* Opacity background section */
+#home { background: rgba(255, 255, 255, 0.7); }
+#education { background: rgba(255, 255, 255, 0.7); }
+#schedule { background: rgba(255, 255, 255, 0.7); }
+#contact { background: rgba(255, 255, 255, 0.7); }
+
+body.dark-mode #home { background: rgba(16, 24, 19, 0.7); }
+body.dark-mode #education { background: rgba(16, 24, 19, 0.7); }
+body.dark-mode #schedule { background: rgba(16, 24, 19, 0.7); }
+body.dark-mode #contact { background: rgba(16, 24, 19, 0.7); }
