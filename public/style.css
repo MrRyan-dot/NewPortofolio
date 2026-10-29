@@ -1414,3 +1414,15 @@ button:focus-visible {
     font-size: 0.6rem;
   }
 }
+
+/* Background animasi Three.js */
+/* Three.js sebagai background seluruh halaman */
+#three-particles-bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: -1;
+  pointer-events: none;
+}
